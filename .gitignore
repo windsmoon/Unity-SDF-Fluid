@@ -106,3 +106,5 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ss]ceneDependencyCache*
 Doc.docx
 AGENTS.md
+/Unity-SDF-Fluid_UnityProject/.idea
+Doc.md
