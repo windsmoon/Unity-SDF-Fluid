@@ -27,6 +27,7 @@ namespace Windsmoon.SdfFluid
         {
             if (fluidParticleDataList == null || fluidParticleDataList.Count == 0)
             {
+                _material.SetInt(_particleCountId, 0);
                 return;
             }
             

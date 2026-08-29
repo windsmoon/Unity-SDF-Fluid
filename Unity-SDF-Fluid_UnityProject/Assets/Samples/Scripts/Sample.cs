@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Windsmoon.SdfFluid;
@@ -22,7 +23,12 @@ public class Sample : MonoBehaviour
     {
         Init();
     }
-    
+
+    private void OnDisable()
+    {
+        _sdfFluidSystem.Dispose();
+    }
+
     private void OnValidate()
     {
         Init();

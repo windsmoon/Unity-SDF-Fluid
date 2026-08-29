@@ -10,7 +10,6 @@ namespace Windsmoon.SdfFluid.ParticleProvider
         #region fields
         private ParticleSystem _particleSystem;
         private ParticleSystem.Particle[] _particleCache;
-        // private FluidParticleData[] _fluidParticleDatas;
         private int _particleCount;
         #endregion
 
@@ -20,7 +19,6 @@ namespace Windsmoon.SdfFluid.ParticleProvider
             _particleSystem = GetComponent<ParticleSystem>();
             int capacity = _particleSystem.main.maxParticles;
             _particleCache = new ParticleSystem.Particle[capacity];
-            // _fluidParticleDatas = new FluidParticleData[capacity];
         }
         #endregion
         
