@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Windsmoon.SdfFluid
 {
-    public class SdfFluidSystem
+    public class SdfFluidSystem : IDisposable
     {
         #region fields
         private int _particleBufferId = Shader.PropertyToID("_ParticleBuffer");
@@ -32,6 +33,11 @@ namespace Windsmoon.SdfFluid
             _particleBuffer.SetData(fluidParticleDataList, 0, 0, fluidParticleDataList.Count);
             _material.SetBuffer(_particleBufferId, _particleBuffer);
             _material.SetInt(_particleCountId, fluidParticleDataList.Count);
+        }
+        
+        public void Dispose()
+        {
+            _particleBuffer.Dispose();
         }
         #endregion
     }

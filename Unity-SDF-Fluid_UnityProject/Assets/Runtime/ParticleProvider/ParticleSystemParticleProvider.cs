@@ -10,7 +10,7 @@ namespace Windsmoon.SdfFluid.ParticleProvider
         #region fields
         private ParticleSystem _particleSystem;
         private ParticleSystem.Particle[] _particleCache;
-        private FluidParticleData[] _fluidParticleDatas;
+        // private FluidParticleData[] _fluidParticleDatas;
         private int _particleCount;
         #endregion
 
@@ -20,12 +20,12 @@ namespace Windsmoon.SdfFluid.ParticleProvider
             _particleSystem = GetComponent<ParticleSystem>();
             int capacity = _particleSystem.main.maxParticles;
             _particleCache = new ParticleSystem.Particle[capacity];
-            _fluidParticleDatas = new FluidParticleData[capacity];
+            // _fluidParticleDatas = new FluidParticleData[capacity];
         }
         #endregion
         
         #region methods
-        public void FillParticleDataList(List<FluidParticleData> fluidParticleDataList, bool needClear = false)
+        public void FillParticleDataList(List<FluidParticleData> fluidParticleDataList, int maxParticleCount, bool needClear = false)
         {
             if (needClear)
             {
@@ -39,16 +39,16 @@ namespace Windsmoon.SdfFluid.ParticleProvider
             
             _particleCount = _particleSystem.GetParticles(_particleCache);
 
-            for (int i = 0; i < _particleCount; i++)
+            for (int i = 0; i < maxParticleCount && i < _particleCount; i++)
             {
                 var particle = _particleCache[i];
                 Color color = particle.GetCurrentColor(_particleSystem);
-                _fluidParticleDatas[i] = new FluidParticleData()
+                fluidParticleDataList.Add(new FluidParticleData()
                 {
                     Position = particle.position,
                     Radius = particle.GetCurrentSize(_particleSystem) * 0.5f,
                     Color = new Vector4(color.r, color.g, color.b, color.a),
-                };
+                });
             }
         }
         #endregion

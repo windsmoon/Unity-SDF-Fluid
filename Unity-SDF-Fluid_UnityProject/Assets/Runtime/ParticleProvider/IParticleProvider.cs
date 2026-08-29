@@ -6,7 +6,7 @@ namespace Windsmoon.SdfFluid.ParticleProvider
     public interface IParticleProvider
     {
         #region methods
-        public void FillParticleDataList(List<FluidParticleData> fluidParticleDataList, bool needClear = false);
+        public void FillParticleDataList(List<FluidParticleData> fluidParticleDataList, int maxParticleCount, bool needClear = false);
         #endregion
     }
 }
