@@ -35,6 +35,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             struct FluidParticleData
             {
@@ -122,10 +123,8 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 return _BaseColor.rgb * (_AmbientIntensity + directLighting) + specularLighting + fresnelLighting;
             }
 
-            bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)
+            bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, float maxDistance, out float hitDistance)
             {
-                const float maxDistance = 100.0;
-
                 hitDistance = 0.0;
 
                 [loop]
@@ -140,7 +139,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                     }
 
                     hitDistance += max(distanceToSurface * _StepSafety, _MinStep);
-                    if (hitDistance > maxDistance)
+                    if (hitDistance >= maxDistance)
                     {
                         break;
                     }
@@ -159,14 +158,25 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                float rawSceneDepth = SampleSceneDepth(input.uv);
+#if UNITY_REVERSED_Z
+                float sceneDeviceDepth = rawSceneDepth;
+#else
+                // ComputeWorldSpacePosition expects the platform's NDC depth range.
+                float sceneDeviceDepth = lerp(UNITY_NEAR_CLIP_VALUE, 1.0, rawSceneDepth);
+#endif
+                
                 // Unproject a far-plane point so the ray remains fixed in world space
                 // while the camera moves and rotates.
                 float3 farPositionWS = ComputeWorldSpacePosition(input.uv,UNITY_RAW_FAR_CLIP_VALUE, UNITY_MATRIX_I_VP);
+                
                 float3 rayOriginWS = _WorldSpaceCameraPos;
                 float3 rayDirectionWS = normalize(farPositionWS - rayOriginWS);
-
+                float3 scenePositionWS = ComputeWorldSpacePosition(input.uv, sceneDeviceDepth, UNITY_MATRIX_I_VP);
+                float sceneDepthT = dot(scenePositionWS - rayOriginWS, rayDirectionWS);
+                
                 float hitDistance;
-                if (RayMarchSphere(rayOriginWS, rayDirectionWS, hitDistance))
+                if (RayMarchSphere(rayOriginWS, rayDirectionWS, sceneDepthT, hitDistance))
                 {
                     float3 hitPositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float3 surfaceNormalWS = EstimateFluidNormal(hitPositionWS);

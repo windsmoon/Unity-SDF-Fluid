@@ -40,9 +40,15 @@ namespace Windsmoon.SdfFluid.Rendering
         private float _fresnelIntensity;
         private float _fresnelPower;
         #endregion
+
+        #region constructors
+        public SdfFluidRayMarchingPass()
+        {
+            ConfigureInput(ScriptableRenderPassInput.Depth);            
+        }
+        #endregion
         
         #region methods
-
         public void Setup(
             Material material,
             GraphicsBuffer particleBuffer,
@@ -81,6 +87,7 @@ namespace Windsmoon.SdfFluid.Rendering
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             using var builder = renderGraph.AddRasterRenderPass<PassData>(RayMarchingPassName, out var passData);
+            
             passData.Material = _material;
             passData.ParticleBuffer = renderGraph.ImportBuffer(_particleBuffer);
             passData.ParticleCount = _particleCount;
@@ -98,6 +105,7 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.FresnelPower = _fresnelPower;
             
             builder.UseBuffer(passData.ParticleBuffer, AccessFlags.Read);
+            builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
             builder.SetRenderFunc<PassData>(RenderFunc);
         }
