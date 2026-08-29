@@ -75,13 +75,17 @@ MonoBehaviour:
   _isParticleDebugMode: 0
   _smoothWidth: 0.211
   _maxSteps: 40
+  _maxDistance: 100
   _stepSafety: 0.7
   _minStep: 0.001
   _hitEpsilon: 0.014
-  _baseColor: {r: 0.6462264, g: 0.8876534, b: 1, a: 1}
+  _baseColor: {r: 0.4292453, g: 0.81609005, b: 1, a: 1}
   _ambientIntensity: 0.127
   _specularIntensity: 1
   _specularPower: 121.1
+  _fresnelColor: {r: 0.36552152, g: 0.58624154, b: 0.6981132, a: 1}
+  _fresnelIntensity: 1.06
+  _fresnelPower: 5.97
 --- !u!114 &7833122117494664109
 MonoBehaviour:
   m_ObjectHideFlags: 0
