@@ -164,7 +164,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             }
             
             
-            Output Frag(Varyings input) : SV_Target
+            Output Frag(Varyings input)
             {
                 float rawSceneDepth = SampleSceneDepth(input.uv);
                 float sceneDepth = LinearEyeDepth(rawSceneDepth, _ZBufferParams);
@@ -188,6 +188,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 
                 Output output;
                 output.sceneDepth = sceneDepth;
+                output.fluidColor = float4(0.0, 0.0, 0.0, 0.0);
 
                 float hitDistance;
                 if (RayMarchSphere(rayOriginWS, rayDirectionWS, maxRayMarchDistance, hitDistance))
@@ -198,7 +199,6 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                     output.fluidColor = float4(surfaceColor, _BaseColor.a);
                 }
                 
-                output.fluidColor = float4(0.0, 0.0, 0.0, 0.0);
                 return output;
             }
             ENDHLSL
@@ -254,7 +254,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 
                 float2 texelPosition = uv * float2(halfWidth, halfHeight) - 0.5;
                 int2 baseCoord = int2(floor(texelPosition));
-                int maxCoord = int2(halfWidth, halfHeight) - 1;
+                int2 maxCoord = int2(halfWidth, halfHeight) - 1;
                 
                 float minDepthDiff = 1e20;
                 int2 selectedCoord = int2(0, 0);

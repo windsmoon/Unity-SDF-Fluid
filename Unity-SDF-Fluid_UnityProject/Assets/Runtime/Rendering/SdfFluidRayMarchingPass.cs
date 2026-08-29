@@ -30,7 +30,7 @@ namespace Windsmoon.SdfFluid.Rendering
         private static readonly int FresnelIntensityId = Shader.PropertyToID("_FresnelIntensity");
         private static readonly int FresnelPowerId = Shader.PropertyToID("_FresnelPower");
         private static readonly int HalfResolutionColorTextureId = Shader.PropertyToID("_HalfResolutionColorTexture");
-        private static readonly int HalfResolutionSceneDepthTextureId = Shader.PropertyToID("_HalfResolutionDepthTexture");
+        private static readonly int HalfResolutionSceneDepthTextureId = Shader.PropertyToID("_HalfResolutionSceneDepthTexture");
         
         private Material _material;
         private GraphicsBuffer _particleBuffer;
@@ -183,6 +183,7 @@ namespace Windsmoon.SdfFluid.Rendering
         private static void CompositeRenderFunc(CompositePassData compositePassData, RasterGraphContext context)
         {
             context.cmd.SetGlobalTexture(HalfResolutionColorTextureId, compositePassData.HalfResolutionColorTexture);
+            context.cmd.SetGlobalTexture(HalfResolutionSceneDepthTextureId, compositePassData.HalfSceneDepthTextureHandle);
             context.cmd.DrawProcedural(Matrix4x4.identity, compositePassData.Material, 1, MeshTopology.Triangles, 3, 1);
         }
         #endregion
