@@ -77,11 +77,11 @@ MonoBehaviour:
   _maxSteps: 40
   _stepSafety: 0.7
   _minStep: 0.001
-  _hitEpsilon: 0.005
-  _baseColor: {r: 0.53640085, g: 0.9245283, b: 0.5933337, a: 1}
+  _hitEpsilon: 0.014
+  _baseColor: {r: 0.6462264, g: 0.8876534, b: 1, a: 1}
   _ambientIntensity: 0.127
   _specularIntensity: 1
-  _specularPower: 64
+  _specularPower: 121.1
 --- !u!114 &7833122117494664109
 MonoBehaviour:
   m_ObjectHideFlags: 0
