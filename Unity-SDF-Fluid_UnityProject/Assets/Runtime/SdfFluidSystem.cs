@@ -41,8 +41,6 @@ namespace Windsmoon.SdfFluid
             
             ParticleCount = fluidParticleDataList.Count;
             _particleBuffer.SetData(fluidParticleDataList, 0, 0, fluidParticleDataList.Count);
-            _material.SetBuffer(_particleBufferId, _particleBuffer);
-            _material.SetInt(_particleCountId, ParticleCount);
         }
         
         public void Dispose()
