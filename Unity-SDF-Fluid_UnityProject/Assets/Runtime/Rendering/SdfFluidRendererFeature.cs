@@ -19,6 +19,18 @@ namespace Windsmoon.SdfFluid.Rendering
         [SerializeField]
         [Range(0.001f, 2.0f)]
         private float _smoothWidth = 0.2f;
+        [SerializeField]
+        [Range(1, 128)]
+        private int _maxSteps = 40;
+        [SerializeField]
+        [Range(0.1f, 1.0f)]
+        private float _stepSafety = 0.7f;
+        [SerializeField]
+        [Range(0.0001f, 0.1f)]
+        private float _minStep = 0.001f;
+        [SerializeField]
+        [Range(0.0001f, 0.1f)]
+        private float _hitEpsilon = 0.005f;
 
         private Material _particleDebugMaterial;
         private Material _rayMarchingMaterial;
@@ -95,7 +107,15 @@ namespace Windsmoon.SdfFluid.Rendering
                 return;
             }
             
-            _sdfFluidRayMarchingPass.Setup(_rayMarchingMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount, _smoothWidth);
+            _sdfFluidRayMarchingPass.Setup(
+                _rayMarchingMaterial,
+                activeSystem.ParticleBuffer,
+                activeSystem.ParticleCount,
+                _smoothWidth,
+                _maxSteps,
+                _stepSafety,
+                _minStep,
+                _hitEpsilon);
             renderer.EnqueuePass(_sdfFluidRayMarchingPass);
         }
         #endregion

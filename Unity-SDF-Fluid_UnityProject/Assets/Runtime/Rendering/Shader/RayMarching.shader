@@ -38,6 +38,10 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             StructuredBuffer<FluidParticleData> _ParticleBuffer;
             int _ParticleCount;
             float _SmoothWidth;
+            int _MaxSteps;
+            float _StepSafety;
+            float _MinStep;
+            float _HitEpsilon;
             
             struct Varyings
             {
@@ -74,24 +78,21 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)
             {
                 const float maxDistance = 100.0;
-                const float hitEpsilon = 0.005;
-                const float stepSafety = 0.7;
-                const float minStep = 0.001;
 
                 hitDistance = 0.0;
 
                 [loop]
-                for (uint step = 0; step < 40; ++step)
+                for (int step = 0; step < _MaxSteps; ++step)
                 {
                     float3 samplePositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float distanceToSurface = EvaluateFluidSDF(samplePositionWS);
 
-                    if (distanceToSurface < hitEpsilon)
+                    if (distanceToSurface < _HitEpsilon)
                     {
                         return true;
                     }
 
-                    hitDistance += max(distanceToSurface * stepSafety, minStep);
+                    hitDistance += max(distanceToSurface * _StepSafety, _MinStep);
                     if (hitDistance > maxDistance)
                     {
                         break;
