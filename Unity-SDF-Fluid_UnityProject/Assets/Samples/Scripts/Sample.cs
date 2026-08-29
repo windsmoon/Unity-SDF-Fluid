@@ -16,6 +16,7 @@ public class Sample : MonoBehaviour
     
     private SdfFluidSystem _sdfFluidSystem;
     private List<FluidParticleData> _fluidParticleDataList;
+    private bool _needReinitialize;
     #endregion
 
     #region unity methods
@@ -33,11 +34,16 @@ public class Sample : MonoBehaviour
 
     private void OnValidate()
     {
-        Init();
+        _needReinitialize = true;
     }
 
     private void LateUpdate()
     {
+        if (_needReinitialize)
+        {
+            Init();
+        }
+
         _particleProvider.FillParticleDataList(_fluidParticleDataList, _maxParticleCount, true);
         _sdfFluidSystem.SetBuffer(_fluidParticleDataList);
     }
@@ -49,6 +55,7 @@ public class Sample : MonoBehaviour
         _sdfFluidSystem?.Dispose();
         _sdfFluidSystem = new SdfFluidSystem(_material, _maxParticleCount);
         _fluidParticleDataList = new List<FluidParticleData>(_maxParticleCount);
+        _needReinitialize = false;
     }
     #endregion
 }
