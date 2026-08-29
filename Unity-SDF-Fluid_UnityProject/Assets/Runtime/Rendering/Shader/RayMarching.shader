@@ -202,18 +202,35 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma vertex Vert
+            #pragma vertex VertComposite
             #pragma fragment FragComposite
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
             TEXTURE2D(_HalfResolutionColorTexture);
 
+            struct Attributes
+            {
+                uint vertexID : SV_VertexID;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                float2 texcoord : TEXCOORD0;
+            };
+
+            Varyings VertComposite(Attributes input)
+            {
+                Varyings output;
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                return output;
+            }
+
             half4 FragComposite(Varyings input) : SV_Target
             {
-                float2 uv = input.texcoord;
-                return SAMPLE_TEXTURE2D(_HalfResolutionColorTexture, sampler_PointClamp, uv);
+                return SAMPLE_TEXTURE2D(_HalfResolutionColorTexture, sampler_PointClamp, input.texcoord);
             }
             ENDHLSL
         }
