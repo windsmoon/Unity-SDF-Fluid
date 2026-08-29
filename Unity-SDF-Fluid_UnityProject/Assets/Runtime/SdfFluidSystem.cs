@@ -24,7 +24,7 @@ namespace Windsmoon.SdfFluid
         public SdfFluidSystem(Material material, int capacity)
         {
             _material = material;
-            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, 32);
+            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, FluidParticleData.Stride);
             ActiveSystem = this;
         }
         #endregion
