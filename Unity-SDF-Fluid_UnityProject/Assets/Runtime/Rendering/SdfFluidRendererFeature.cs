@@ -11,21 +11,33 @@ namespace Windsmoon.SdfFluid.Rendering
         [SerializeField]
         private Shader _particleDebugShader;
         [SerializeField]
+        private Shader _rayMarchingShader;
+        [SerializeField]
         private RenderPassEvent _renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
+        [SerializeField]
+        private bool _isParticleDebugMode = false;
 
         private Material _particleDebugMaterial;
+        private Material _rayMarchingMaterial;
+        
         private SdfFluidParticleDebugPass _sdfFluidParticleDebugPass;
+        private SdfFluidRayMarchingPass _sdfFluidRayMarchingPass;
         #endregion
 
         #region methods
         public override void Create()
         {
             CoreUtils.Destroy(_particleDebugMaterial);
-            _particleDebugMaterial = _particleDebugShader == null
-                ? null
-                : CoreUtils.CreateEngineMaterial(_particleDebugShader);
+            CoreUtils.Destroy(_rayMarchingMaterial);
+            
+            _particleDebugMaterial = _particleDebugShader == null ? null : CoreUtils.CreateEngineMaterial(_particleDebugShader);
+            _rayMarchingMaterial = _rayMarchingShader == null ? null : CoreUtils.CreateEngineMaterial(_rayMarchingShader);
 
             _sdfFluidParticleDebugPass = new SdfFluidParticleDebugPass
+            {
+                renderPassEvent = _renderPassEvent,
+            };
+            _sdfFluidRayMarchingPass = new SdfFluidRayMarchingPass()
             {
                 renderPassEvent = _renderPassEvent,
             };
@@ -33,26 +45,55 @@ namespace Windsmoon.SdfFluid.Rendering
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if (_particleDebugMaterial == null || renderingData.cameraData.cameraType == CameraType.Preview)
+            if (renderingData.cameraData.cameraType == CameraType.SceneView)
             {
                 return;
             }
-
+            
             SdfFluidSystem activeSystem = SdfFluidSystem.ActiveSystem;
             if (activeSystem == null || activeSystem.ParticleCount == 0)
             {
                 return;
             }
 
-            _sdfFluidParticleDebugPass.Setup(_particleDebugMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount);
-            renderer.EnqueuePass(_sdfFluidParticleDebugPass);
+            if (_isParticleDebugMode)
+            {
+                AddParticleDebugPass(renderer, ref renderingData, activeSystem);
+            }
+            else
+            {
+                AddRayMarchingPass(renderer, ref renderingData, activeSystem);
+            }
         }
 
         protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(_particleDebugMaterial);
-            _particleDebugMaterial = null;
-            _sdfFluidParticleDebugPass = null;
+            CoreUtils.Destroy(_rayMarchingMaterial);
+        }
+
+        private void AddParticleDebugPass(ScriptableRenderer renderer, ref RenderingData renderingData, SdfFluidSystem activeSystem)
+        {
+            if (_particleDebugMaterial == null)
+            {
+                Debug.LogError($"no particle debug material found on {this.name}");
+                return;
+            }
+            
+            _sdfFluidParticleDebugPass.Setup(_particleDebugMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount);
+            renderer.EnqueuePass(_sdfFluidParticleDebugPass);
+        }
+        
+        private void AddRayMarchingPass(ScriptableRenderer renderer, ref RenderingData renderingData, SdfFluidSystem activeSystem)
+        {
+            if (_rayMarchingMaterial == null)
+            {
+                Debug.LogError($"no ray marching material found on {this.name}");
+                return;
+            }
+            
+            _sdfFluidRayMarchingPass.Setup(_rayMarchingMaterial);
+            renderer.EnqueuePass(_sdfFluidRayMarchingPass);
         }
         #endregion
     }
