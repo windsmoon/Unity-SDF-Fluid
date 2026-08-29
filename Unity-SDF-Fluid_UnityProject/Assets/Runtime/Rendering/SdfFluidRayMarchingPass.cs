@@ -16,6 +16,8 @@ namespace Windsmoon.SdfFluid.Rendering
         private static readonly int StepSafetyId = Shader.PropertyToID("_StepSafety");
         private static readonly int MinStepId = Shader.PropertyToID("_MinStep");
         private static readonly int HitEpsilonId = Shader.PropertyToID("_HitEpsilon");
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int AmbientIntensityId = Shader.PropertyToID("_AmbientIntensity");
             
         private Material _material;
         private GraphicsBuffer _particleBuffer;
@@ -25,11 +27,23 @@ namespace Windsmoon.SdfFluid.Rendering
         private float _stepSafety;
         private float _minStep;
         private float _hitEpsilon;
+        private Color _baseColor;
+        private float _ambientIntensity;
         #endregion
         
         #region methods
 
-        public void Setup(Material material, GraphicsBuffer particleBuffer, int particleCount, float smoothWidth, int maxSteps, float stepSafety, float minStep, float hitEpsilon)
+        public void Setup(
+            Material material,
+            GraphicsBuffer particleBuffer,
+            int particleCount,
+            float smoothWidth,
+            int maxSteps,
+            float stepSafety,
+            float minStep,
+            float hitEpsilon,
+            Color baseColor,
+            float ambientIntensity)
         {
             _material = material;
             _particleBuffer = particleBuffer;
@@ -39,6 +53,8 @@ namespace Windsmoon.SdfFluid.Rendering
             _stepSafety = stepSafety;
             _minStep = minStep;
             _hitEpsilon = hitEpsilon;
+            _baseColor = baseColor;
+            _ambientIntensity = ambientIntensity;
         }
         
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -53,6 +69,8 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.StepSafety = _stepSafety;
             passData.MinStep = _minStep;
             passData.HitEpsilon = _hitEpsilon;
+            passData.BaseColor = _baseColor;
+            passData.AmbientIntensity = _ambientIntensity;
             
             builder.UseBuffer(passData.ParticleBuffer, AccessFlags.Read);
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
@@ -68,6 +86,8 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.Material.SetFloat(StepSafetyId, passData.StepSafety);
             passData.Material.SetFloat(MinStepId, passData.MinStep);
             passData.Material.SetFloat(HitEpsilonId, passData.HitEpsilon);
+            passData.Material.SetColor(BaseColorId, passData.BaseColor);
+            passData.Material.SetFloat(AmbientIntensityId, passData.AmbientIntensity);
             context.cmd.DrawProcedural(Matrix4x4.identity, passData.Material, 0, MeshTopology.Triangles, 3, 1);
         }
         #endregion
@@ -84,6 +104,8 @@ namespace Windsmoon.SdfFluid.Rendering
             public float StepSafety;
             public float MinStep;
             public float HitEpsilon;
+            public Color BaseColor;
+            public float AmbientIntensity;
             #endregion
         }
         #endregion

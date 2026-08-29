@@ -3,6 +3,8 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
     Properties
     {
         _SmoothWidth("Smooth Width", Range(0.001, 2.0)) = 0.2
+        _BaseColor("Base Color", Color) = (0.05, 0.35, 0.8, 1.0)
+        _AmbientIntensity("Ambient Intensity", Range(0.0, 1.0)) = 0.15
     }
 
     SubShader
@@ -27,6 +29,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             #pragma fragment Frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             struct FluidParticleData
             {
@@ -42,6 +45,8 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             float _StepSafety;
             float _MinStep;
             float _HitEpsilon;
+            float4 _BaseColor;
+            float _AmbientIntensity;
             
             struct Varyings
             {
@@ -88,6 +93,15 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                     EvaluateFluidSDF(positionWS + offsetY) - EvaluateFluidSDF(positionWS - offsetY),
                     EvaluateFluidSDF(positionWS + offsetZ) - EvaluateFluidSDF(positionWS - offsetZ));
                 return normalize(gradient);
+            }
+
+            float3 ShadeFluid(float3 surfaceNormalWS)
+            {
+                Light mainLight = GetMainLight();
+                float diffuseIntensity = saturate(dot(surfaceNormalWS, mainLight.direction));
+                float lightAttenuation = mainLight.distanceAttenuation * mainLight.shadowAttenuation;
+                float3 directLighting = mainLight.color * diffuseIntensity * lightAttenuation;
+                return _BaseColor.rgb * (_AmbientIntensity + directLighting);
             }
 
             bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)
@@ -138,7 +152,8 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 {
                     float3 hitPositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float3 surfaceNormalWS = EstimateFluidNormal(hitPositionWS);
-                    return float4(surfaceNormalWS * 0.5 + 0.5, 1.0);
+                    float3 surfaceColor = ShadeFluid(surfaceNormalWS);
+                    return float4(surfaceColor, _BaseColor.a);
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

@@ -31,6 +31,11 @@ namespace Windsmoon.SdfFluid.Rendering
         [SerializeField]
         [Range(0.0001f, 0.1f)]
         private float _hitEpsilon = 0.005f;
+        [SerializeField]
+        private Color _baseColor = new Color(0.05f, 0.35f, 0.8f, 1.0f);
+        [SerializeField]
+        [Range(0.0f, 1.0f)]
+        private float _ambientIntensity = 0.15f;
 
         private Material _particleDebugMaterial;
         private Material _rayMarchingMaterial;
@@ -115,7 +120,9 @@ namespace Windsmoon.SdfFluid.Rendering
                 _maxSteps,
                 _stepSafety,
                 _minStep,
-                _hitEpsilon);
+                _hitEpsilon,
+                _baseColor,
+                _ambientIntensity);
             renderer.EnqueuePass(_sdfFluidRayMarchingPass);
         }
         #endregion
