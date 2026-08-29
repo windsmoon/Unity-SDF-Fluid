@@ -25,22 +25,70 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 
             struct Varyings
             {
-                float4 PositionCS : SV_POSITION;
-                float2 UV : TEXCOORD0;
+                float4 posCS : SV_POSITION;
+                float2 uv : TEXCOORD0;
             };
+
+            float SphereSDF(float3 positionWS, float3 sphereCenterWS, float sphereRadius)
+            {
+                return length(positionWS - sphereCenterWS) - sphereRadius;
+            }
+
+            bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)
+            {
+                const float3 sphereCenterWS = float3(0.0, 1.0, 0.0);
+                const float sphereRadius = 0.5;
+                const float maxDistance = 100.0;
+                const float hitEpsilon = 0.005;
+                const float stepSafety = 0.7;
+                const float minStep = 0.001;
+
+                hitDistance = 0.0;
+
+                [loop]
+                for (uint step = 0; step < 40; ++step)
+                {
+                    float3 samplePositionWS = rayOriginWS + rayDirectionWS * hitDistance;
+                    float distanceToSurface = SphereSDF(samplePositionWS, sphereCenterWS, sphereRadius);
+
+                    if (distanceToSurface < hitEpsilon)
+                    {
+                        return true;
+                    }
+
+                    hitDistance += max(distanceToSurface * stepSafety, minStep);
+                    if (hitDistance > maxDistance)
+                    {
+                        break;
+                    }
+                }
+
+                return false;
+            }
 
             Varyings Vert(uint vertexId : SV_VertexID)
             {
                 Varyings output;
-                output.PositionCS = GetFullScreenTriangleVertexPosition(vertexId);
-                output.UV = GetFullScreenTriangleTexCoord(vertexId);
+                output.posCS = GetFullScreenTriangleVertexPosition(vertexId);
+                output.uv = GetFullScreenTriangleTexCoord(vertexId);
                 return output;
             }
 
             float4 Frag(Varyings input) : SV_Target
             {
-                // UV gradient verifies that the RenderGraph pass covers the full target.
-                return float4(input.UV, 0.0, 1.0);
+                // Unproject a far-plane point so the ray remains fixed in world space
+                // while the camera moves and rotates.
+                float3 farPositionWS = ComputeWorldSpacePosition(input.uv,UNITY_RAW_FAR_CLIP_VALUE, UNITY_MATRIX_I_VP);
+                float3 rayOriginWS = _WorldSpaceCameraPos;
+                float3 rayDirectionWS = normalize(farPositionWS - rayOriginWS);
+
+                float hitDistance;
+                if (RayMarchSphere(rayOriginWS, rayDirectionWS, hitDistance))
+                {
+                    return float4(1.0, 0.0, 0.0, 1.0);
+                }
+
+                return float4(0.0, 0.0, 0.0, 0.0);
             }
             ENDHLSL
         }

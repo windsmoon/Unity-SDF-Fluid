@@ -25,16 +25,16 @@ Shader "Hidden/Windsmoon/SDF Fluid/Particle Buffer Debug"
 
             struct FluidParticleData
             {
-                float3 Position;
-                float Radius;
-                float4 Color;
+                float3 position;
+                float radius;
+                float4 color;
             };
 
             struct Varyings
             {
-                float4 PositionCS : SV_POSITION;
-                float2 CirclePosition : TEXCOORD0;
-                float4 Color : COLOR0;
+                float4 positionCS : SV_POSITION;
+                float2 circlePosition : TEXCOORD0;
+                float4 color : COLOR0;
             };
 
             StructuredBuffer<FluidParticleData> _ParticleBuffer;
@@ -57,24 +57,24 @@ Shader "Hidden/Windsmoon/SDF Fluid/Particle Buffer Debug"
             {
                 FluidParticleData particle = _ParticleBuffer[instanceId];
                 float2 corner = GetQuadCorner(vertexId);
-                float4 centerPositionCS = TransformWorldToHClip(particle.Position);
+                float4 centerPositionCS = TransformWorldToHClip(particle.position);
 
                 // Project a world-space radius directly into clip space. Dividing by W
                 // during rasterization makes the debug billboard shrink with distance.
                 float2 projectionScale = float2(UNITY_MATRIX_P._m00, UNITY_MATRIX_P._m11);
-                centerPositionCS.xy += corner * particle.Radius * projectionScale;
+                centerPositionCS.xy += corner * particle.radius * projectionScale;
 
                 Varyings output;
-                output.PositionCS = centerPositionCS;
-                output.CirclePosition = corner;
-                output.Color = particle.Color;
+                output.positionCS = centerPositionCS;
+                output.circlePosition = corner;
+                output.color = particle.color;
                 return output;
             }
 
             float4 Frag(Varyings input) : SV_Target
             {
-                clip(1.0 - dot(input.CirclePosition, input.CirclePosition));
-                return input.Color;
+                clip(1.0 - dot(input.circlePosition, input.circlePosition));
+                return input.color;
             }
             ENDHLSL
         }
