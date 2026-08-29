@@ -13,6 +13,7 @@ namespace Windsmoon.SdfFluid.Rendering
         private static readonly int ParticleCountId = Shader.PropertyToID("_ParticleCount");
         private static readonly int SmoothWidthId = Shader.PropertyToID("_SmoothWidth");
         private static readonly int MaxStepsId = Shader.PropertyToID("_MaxSteps");
+        private static readonly int MaxDistanceId = Shader.PropertyToID("_MaxDistance");
         private static readonly int StepSafetyId = Shader.PropertyToID("_StepSafety");
         private static readonly int MinStepId = Shader.PropertyToID("_MinStep");
         private static readonly int HitEpsilonId = Shader.PropertyToID("_HitEpsilon");
@@ -29,6 +30,7 @@ namespace Windsmoon.SdfFluid.Rendering
         private int _particleCount;
         private float _smoothWidth;
         private int _maxSteps;
+        private float _maxDistance;
         private float _stepSafety;
         private float _minStep;
         private float _hitEpsilon;
@@ -55,6 +57,7 @@ namespace Windsmoon.SdfFluid.Rendering
             int particleCount,
             float smoothWidth,
             int maxSteps,
+            float maxDistance,
             float stepSafety,
             float minStep,
             float hitEpsilon,
@@ -71,6 +74,7 @@ namespace Windsmoon.SdfFluid.Rendering
             _particleCount = particleCount;
             _smoothWidth = smoothWidth;
             _maxSteps = maxSteps;
+            _maxDistance = maxDistance;
             _stepSafety = stepSafety;
             _minStep = minStep;
             _hitEpsilon = hitEpsilon;
@@ -93,6 +97,7 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.ParticleCount = _particleCount;
             passData.SmoothWidth = _smoothWidth;
             passData.MaxSteps = _maxSteps;
+            passData.MaxDistance = _maxDistance;
             passData.StepSafety = _stepSafety;
             passData.MinStep = _minStep;
             passData.HitEpsilon = _hitEpsilon;
@@ -116,6 +121,7 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.Material.SetInt(ParticleCountId, passData.ParticleCount);
             passData.Material.SetFloat(SmoothWidthId, passData.SmoothWidth);
             passData.Material.SetInt(MaxStepsId, passData.MaxSteps);
+            passData.Material.SetFloat(MaxDistanceId, passData.MaxDistance);
             passData.Material.SetFloat(StepSafetyId, passData.StepSafety);
             passData.Material.SetFloat(MinStepId, passData.MinStep);
             passData.Material.SetFloat(HitEpsilonId, passData.HitEpsilon);
@@ -139,6 +145,7 @@ namespace Windsmoon.SdfFluid.Rendering
             public int ParticleCount;
             public float SmoothWidth;
             public int MaxSteps;
+            public float MaxDistance;
             public float StepSafety;
             public float MinStep;
             public float HitEpsilon;

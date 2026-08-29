@@ -23,6 +23,9 @@ namespace Windsmoon.SdfFluid.Rendering
         [Range(1, 128)]
         private int _maxSteps = 40;
         [SerializeField]
+        [Min(0.0f)]
+        private float _maxDistance = 100.0f;
+        [SerializeField]
         [Range(0.1f, 1.0f)]
         private float _stepSafety = 0.7f;
         [SerializeField]
@@ -132,6 +135,7 @@ namespace Windsmoon.SdfFluid.Rendering
                 activeSystem.ParticleCount,
                 _smoothWidth,
                 _maxSteps,
+                _maxDistance,
                 _stepSafety,
                 _minStep,
                 _hitEpsilon,

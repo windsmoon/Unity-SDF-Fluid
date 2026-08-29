@@ -48,6 +48,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             int _ParticleCount;
             float _SmoothWidth;
             int _MaxSteps;
+            float _MaxDistance;
             float _StepSafety;
             float _MinStep;
             float _HitEpsilon;
@@ -174,9 +175,10 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 float3 rayDirectionWS = normalize(farPositionWS - rayOriginWS);
                 float3 scenePositionWS = ComputeWorldSpacePosition(input.uv, sceneDeviceDepth, UNITY_MATRIX_I_VP);
                 float sceneDepthT = dot(scenePositionWS - rayOriginWS, rayDirectionWS);
+                float maxRayMarchDistance = min(_MaxDistance, sceneDepthT);
                 
                 float hitDistance;
-                if (RayMarchSphere(rayOriginWS, rayDirectionWS, sceneDepthT, hitDistance))
+                if (RayMarchSphere(rayOriginWS, rayDirectionWS, maxRayMarchDistance, hitDistance))
                 {
                     float3 hitPositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float3 surfaceNormalWS = EstimateFluidNormal(hitPositionWS);
