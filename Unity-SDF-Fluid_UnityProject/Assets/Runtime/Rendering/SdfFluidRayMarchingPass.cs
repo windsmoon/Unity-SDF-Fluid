@@ -18,6 +18,8 @@ namespace Windsmoon.SdfFluid.Rendering
         private static readonly int HitEpsilonId = Shader.PropertyToID("_HitEpsilon");
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int AmbientIntensityId = Shader.PropertyToID("_AmbientIntensity");
+        private static readonly int SpecularIntensityId = Shader.PropertyToID("_SpecularIntensity");
+        private static readonly int SpecularPowerId = Shader.PropertyToID("_SpecularPower");
             
         private Material _material;
         private GraphicsBuffer _particleBuffer;
@@ -29,6 +31,8 @@ namespace Windsmoon.SdfFluid.Rendering
         private float _hitEpsilon;
         private Color _baseColor;
         private float _ambientIntensity;
+        private float _specularIntensity;
+        private float _specularPower;
         #endregion
         
         #region methods
@@ -43,7 +47,9 @@ namespace Windsmoon.SdfFluid.Rendering
             float minStep,
             float hitEpsilon,
             Color baseColor,
-            float ambientIntensity)
+            float ambientIntensity,
+            float specularIntensity,
+            float specularPower)
         {
             _material = material;
             _particleBuffer = particleBuffer;
@@ -55,6 +61,8 @@ namespace Windsmoon.SdfFluid.Rendering
             _hitEpsilon = hitEpsilon;
             _baseColor = baseColor;
             _ambientIntensity = ambientIntensity;
+            _specularIntensity = specularIntensity;
+            _specularPower = specularPower;
         }
         
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -71,6 +79,8 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.HitEpsilon = _hitEpsilon;
             passData.BaseColor = _baseColor;
             passData.AmbientIntensity = _ambientIntensity;
+            passData.SpecularIntensity = _specularIntensity;
+            passData.SpecularPower = _specularPower;
             
             builder.UseBuffer(passData.ParticleBuffer, AccessFlags.Read);
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
@@ -88,6 +98,8 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.Material.SetFloat(HitEpsilonId, passData.HitEpsilon);
             passData.Material.SetColor(BaseColorId, passData.BaseColor);
             passData.Material.SetFloat(AmbientIntensityId, passData.AmbientIntensity);
+            passData.Material.SetFloat(SpecularIntensityId, passData.SpecularIntensity);
+            passData.Material.SetFloat(SpecularPowerId, passData.SpecularPower);
             context.cmd.DrawProcedural(Matrix4x4.identity, passData.Material, 0, MeshTopology.Triangles, 3, 1);
         }
         #endregion
@@ -106,6 +118,8 @@ namespace Windsmoon.SdfFluid.Rendering
             public float HitEpsilon;
             public Color BaseColor;
             public float AmbientIntensity;
+            public float SpecularIntensity;
+            public float SpecularPower;
             #endregion
         }
         #endregion

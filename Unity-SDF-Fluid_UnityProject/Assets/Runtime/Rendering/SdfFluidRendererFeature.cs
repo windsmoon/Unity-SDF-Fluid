@@ -36,6 +36,12 @@ namespace Windsmoon.SdfFluid.Rendering
         [SerializeField]
         [Range(0.0f, 1.0f)]
         private float _ambientIntensity = 0.15f;
+        [SerializeField]
+        [Range(0.0f, 4.0f)]
+        private float _specularIntensity = 1.0f;
+        [SerializeField]
+        [Range(1.0f, 256.0f)]
+        private float _specularPower = 64.0f;
 
         private Material _particleDebugMaterial;
         private Material _rayMarchingMaterial;
@@ -122,7 +128,9 @@ namespace Windsmoon.SdfFluid.Rendering
                 _minStep,
                 _hitEpsilon,
                 _baseColor,
-                _ambientIntensity);
+                _ambientIntensity,
+                _specularIntensity,
+                _specularPower);
             renderer.EnqueuePass(_sdfFluidRayMarchingPass);
         }
         #endregion

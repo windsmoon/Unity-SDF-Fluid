@@ -5,6 +5,8 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
         _SmoothWidth("Smooth Width", Range(0.001, 2.0)) = 0.2
         _BaseColor("Base Color", Color) = (0.05, 0.35, 0.8, 1.0)
         _AmbientIntensity("Ambient Intensity", Range(0.0, 1.0)) = 0.15
+        _SpecularIntensity("Specular Intensity", Range(0.0, 4.0)) = 1.0
+        _SpecularPower("Specular Power", Range(1.0, 256.0)) = 64.0
     }
 
     SubShader
@@ -47,6 +49,8 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             float _HitEpsilon;
             float4 _BaseColor;
             float _AmbientIntensity;
+            float _SpecularIntensity;
+            float _SpecularPower;
             
             struct Varyings
             {
@@ -95,13 +99,17 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 return normalize(gradient);
             }
 
-            float3 ShadeFluid(float3 surfaceNormalWS)
+            float3 ShadeFluid(float3 hitPositionWS, float3 surfaceNormalWS)
             {
                 Light mainLight = GetMainLight();
                 float diffuseIntensity = saturate(dot(surfaceNormalWS, mainLight.direction));
                 float lightAttenuation = mainLight.distanceAttenuation * mainLight.shadowAttenuation;
                 float3 directLighting = mainLight.color * diffuseIntensity * lightAttenuation;
-                return _BaseColor.rgb * (_AmbientIntensity + directLighting);
+                float3 viewDirectionWS = normalize(_WorldSpaceCameraPos - hitPositionWS);
+                float3 halfDirectionWS = SafeNormalize(mainLight.direction + viewDirectionWS);
+                float specularIntensity = pow(saturate(dot(surfaceNormalWS, halfDirectionWS)), _SpecularPower) * step(0.0001, diffuseIntensity);
+                float3 specularLighting = mainLight.color * specularIntensity * _SpecularIntensity * lightAttenuation;
+                return _BaseColor.rgb * (_AmbientIntensity + directLighting) + specularLighting;
             }
 
             bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)
@@ -152,7 +160,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 {
                     float3 hitPositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float3 surfaceNormalWS = EstimateFluidNormal(hitPositionWS);
-                    float3 surfaceColor = ShadeFluid(surfaceNormalWS);
+                    float3 surfaceColor = ShadeFluid(hitPositionWS, surfaceNormalWS);
                     return float4(surfaceColor, _BaseColor.a);
                 }
 
