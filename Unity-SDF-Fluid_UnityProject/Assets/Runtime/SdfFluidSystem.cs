@@ -14,11 +14,18 @@ namespace Windsmoon.SdfFluid
         private GraphicsBuffer _particleBuffer;
         #endregion
 
+        #region properties
+        public static SdfFluidSystem ActiveSystem { get; private set; }
+        public GraphicsBuffer ParticleBuffer => _particleBuffer;
+        public int ParticleCount { get; private set; }
+        #endregion
+
         #region constructors
         public SdfFluidSystem(Material material, int capacity)
         {
             _material = material;
             _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, 32);
+            ActiveSystem = this;
         }
         #endregion
         
@@ -27,17 +34,24 @@ namespace Windsmoon.SdfFluid
         {
             if (fluidParticleDataList == null || fluidParticleDataList.Count == 0)
             {
+                ParticleCount = 0;
                 _material.SetInt(_particleCountId, 0);
                 return;
             }
             
+            ParticleCount = fluidParticleDataList.Count;
             _particleBuffer.SetData(fluidParticleDataList, 0, 0, fluidParticleDataList.Count);
             _material.SetBuffer(_particleBufferId, _particleBuffer);
-            _material.SetInt(_particleCountId, fluidParticleDataList.Count);
+            _material.SetInt(_particleCountId, ParticleCount);
         }
         
         public void Dispose()
         {
+            if (ActiveSystem == this)
+            {
+                ActiveSystem = null;
+            }
+
             _particleBuffer.Dispose();
         }
         #endregion
