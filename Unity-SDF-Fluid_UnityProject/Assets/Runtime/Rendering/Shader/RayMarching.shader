@@ -7,6 +7,9 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
         _AmbientIntensity("Ambient Intensity", Range(0.0, 1.0)) = 0.15
         _SpecularIntensity("Specular Intensity", Range(0.0, 4.0)) = 1.0
         _SpecularPower("Specular Power", Range(1.0, 256.0)) = 64.0
+        _FresnelColor("Fresnel Color", Color) = (0.7, 0.9, 1.0, 1.0)
+        _FresnelIntensity("Fresnel Intensity", Range(0.0, 4.0)) = 0.5
+        _FresnelPower("Fresnel Power", Range(0.5, 8.0)) = 4.0
     }
 
     SubShader
@@ -51,6 +54,9 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             float _AmbientIntensity;
             float _SpecularIntensity;
             float _SpecularPower;
+            float4 _FresnelColor;
+            float _FresnelIntensity;
+            float _FresnelPower;
             
             struct Varyings
             {
@@ -111,7 +117,9 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 float3 halfDirectionWS = SafeNormalize(mainLight.direction + viewDirectionWS);
                 float specularIntensity = pow(saturate(dot(surfaceNormalWS, halfDirectionWS)), _SpecularPower) * step(0.0001, diffuseIntensity);
                 float3 specularLighting = mainLight.color * specularIntensity * _SpecularIntensity;
-                return _BaseColor.rgb * (_AmbientIntensity + directLighting) + specularLighting;
+                float fresnelIntensity = pow(1.0 - saturate(dot(surfaceNormalWS, viewDirectionWS)), _FresnelPower) * _FresnelIntensity;
+                float3 fresnelLighting = _FresnelColor.rgb * fresnelIntensity;
+                return _BaseColor.rgb * (_AmbientIntensity + directLighting) + specularLighting + fresnelLighting;
             }
 
             bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)

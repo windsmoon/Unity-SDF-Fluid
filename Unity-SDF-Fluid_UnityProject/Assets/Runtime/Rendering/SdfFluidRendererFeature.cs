@@ -42,6 +42,14 @@ namespace Windsmoon.SdfFluid.Rendering
         [SerializeField]
         [Range(1.0f, 256.0f)]
         private float _specularPower = 64.0f;
+        [SerializeField]
+        private Color _fresnelColor = new Color(0.7f, 0.9f, 1.0f, 1.0f);
+        [SerializeField]
+        [Range(0.0f, 4.0f)]
+        private float _fresnelIntensity = 0.5f;
+        [SerializeField]
+        [Range(0.5f, 8.0f)]
+        private float _fresnelPower = 4.0f;
 
         private Material _particleDebugMaterial;
         private Material _rayMarchingMaterial;
@@ -130,7 +138,10 @@ namespace Windsmoon.SdfFluid.Rendering
                 _baseColor,
                 _ambientIntensity,
                 _specularIntensity,
-                _specularPower);
+                _specularPower,
+                _fresnelColor,
+                _fresnelIntensity,
+                _fresnelPower);
             renderer.EnqueuePass(_sdfFluidRayMarchingPass);
         }
         #endregion

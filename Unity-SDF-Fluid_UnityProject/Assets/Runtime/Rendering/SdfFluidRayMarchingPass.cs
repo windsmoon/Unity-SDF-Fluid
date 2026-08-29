@@ -20,6 +20,9 @@ namespace Windsmoon.SdfFluid.Rendering
         private static readonly int AmbientIntensityId = Shader.PropertyToID("_AmbientIntensity");
         private static readonly int SpecularIntensityId = Shader.PropertyToID("_SpecularIntensity");
         private static readonly int SpecularPowerId = Shader.PropertyToID("_SpecularPower");
+        private static readonly int FresnelColorId = Shader.PropertyToID("_FresnelColor");
+        private static readonly int FresnelIntensityId = Shader.PropertyToID("_FresnelIntensity");
+        private static readonly int FresnelPowerId = Shader.PropertyToID("_FresnelPower");
             
         private Material _material;
         private GraphicsBuffer _particleBuffer;
@@ -33,6 +36,9 @@ namespace Windsmoon.SdfFluid.Rendering
         private float _ambientIntensity;
         private float _specularIntensity;
         private float _specularPower;
+        private Color _fresnelColor;
+        private float _fresnelIntensity;
+        private float _fresnelPower;
         #endregion
         
         #region methods
@@ -49,7 +55,10 @@ namespace Windsmoon.SdfFluid.Rendering
             Color baseColor,
             float ambientIntensity,
             float specularIntensity,
-            float specularPower)
+            float specularPower,
+            Color fresnelColor,
+            float fresnelIntensity,
+            float fresnelPower)
         {
             _material = material;
             _particleBuffer = particleBuffer;
@@ -63,6 +72,9 @@ namespace Windsmoon.SdfFluid.Rendering
             _ambientIntensity = ambientIntensity;
             _specularIntensity = specularIntensity;
             _specularPower = specularPower;
+            _fresnelColor = fresnelColor;
+            _fresnelIntensity = fresnelIntensity;
+            _fresnelPower = fresnelPower;
         }
         
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -81,6 +93,9 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.AmbientIntensity = _ambientIntensity;
             passData.SpecularIntensity = _specularIntensity;
             passData.SpecularPower = _specularPower;
+            passData.FresnelColor = _fresnelColor;
+            passData.FresnelIntensity = _fresnelIntensity;
+            passData.FresnelPower = _fresnelPower;
             
             builder.UseBuffer(passData.ParticleBuffer, AccessFlags.Read);
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
@@ -100,6 +115,9 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.Material.SetFloat(AmbientIntensityId, passData.AmbientIntensity);
             passData.Material.SetFloat(SpecularIntensityId, passData.SpecularIntensity);
             passData.Material.SetFloat(SpecularPowerId, passData.SpecularPower);
+            passData.Material.SetColor(FresnelColorId, passData.FresnelColor);
+            passData.Material.SetFloat(FresnelIntensityId, passData.FresnelIntensity);
+            passData.Material.SetFloat(FresnelPowerId, passData.FresnelPower);
             context.cmd.DrawProcedural(Matrix4x4.identity, passData.Material, 0, MeshTopology.Triangles, 3, 1);
         }
         #endregion
@@ -120,6 +138,9 @@ namespace Windsmoon.SdfFluid.Rendering
             public float AmbientIntensity;
             public float SpecularIntensity;
             public float SpecularPower;
+            public Color FresnelColor;
+            public float FresnelIntensity;
+            public float FresnelPower;
             #endregion
         }
         #endregion
