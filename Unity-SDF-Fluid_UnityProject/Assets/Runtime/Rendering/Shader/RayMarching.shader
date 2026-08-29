@@ -103,12 +103,14 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             {
                 Light mainLight = GetMainLight();
                 float diffuseIntensity = saturate(dot(surfaceNormalWS, mainLight.direction));
-                float lightAttenuation = mainLight.distanceAttenuation * mainLight.shadowAttenuation;
-                float3 directLighting = mainLight.color * diffuseIntensity * lightAttenuation;
+                // A procedural full-screen draw has no Renderer to populate
+                // unity_LightData.z, so GetMainLight().distanceAttenuation is
+                // not a valid main-light culling value for this pass.
+                float3 directLighting = mainLight.color * diffuseIntensity;
                 float3 viewDirectionWS = normalize(_WorldSpaceCameraPos - hitPositionWS);
                 float3 halfDirectionWS = SafeNormalize(mainLight.direction + viewDirectionWS);
                 float specularIntensity = pow(saturate(dot(surfaceNormalWS, halfDirectionWS)), _SpecularPower) * step(0.0001, diffuseIntensity);
-                float3 specularLighting = mainLight.color * specularIntensity * _SpecularIntensity * lightAttenuation;
+                float3 specularLighting = mainLight.color * specularIntensity * _SpecularIntensity;
                 return _BaseColor.rgb * (_AmbientIntensity + directLighting) + specularLighting;
             }
 
