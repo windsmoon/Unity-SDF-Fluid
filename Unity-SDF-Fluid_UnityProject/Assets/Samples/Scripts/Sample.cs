@@ -19,14 +19,16 @@ public class Sample : MonoBehaviour
     #endregion
 
     #region unity methods
-    private void Awake()
+    private void OnEnable()
     {
         Init();
     }
 
+
     private void OnDisable()
     {
         _sdfFluidSystem.Dispose();
+        _sdfFluidSystem = null;
     }
 
     private void OnValidate()
