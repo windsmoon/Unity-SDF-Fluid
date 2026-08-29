@@ -8,13 +8,9 @@ namespace Windsmoon.SdfFluid.ParticleProvider
     public class ParticleSystemParticleProvider : MonoBehaviour, IParticleProvider
     {
         #region fields
-        private const int ParticleStride = 32;
-        
-        
         private ParticleSystem _particleSystem;
         private ParticleSystem.Particle[] _particleCache;
         private FluidParticleData[] _fluidParticleDatas;
-        private GraphicsBuffer _particleBuffer;
         private int _particleCount;
         #endregion
 
@@ -25,17 +21,22 @@ namespace Windsmoon.SdfFluid.ParticleProvider
             int capacity = _particleSystem.main.maxParticles;
             _particleCache = new ParticleSystem.Particle[capacity];
             _fluidParticleDatas = new FluidParticleData[capacity];
-            _particleBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, ParticleStride);
         }
-
-        private void OnDisable()
+        #endregion
+        
+        #region methods
+        public void FillParticleDataList(List<FluidParticleData> fluidParticleDataList, bool needClear = false)
         {
-            _particleBuffer.Release();
-            _particleBuffer = null;
-        }
-
-        private void LateUpdate()
-        {
+            if (needClear)
+            {
+                fluidParticleDataList.Clear();
+            }
+            
+            if (enabled == false)
+            {
+                return;
+            }
+            
             _particleCount = _particleSystem.GetParticles(_particleCache);
 
             for (int i = 0; i < _particleCount; i++)
@@ -49,18 +50,6 @@ namespace Windsmoon.SdfFluid.ParticleProvider
                     Color = new Vector4(color.r, color.g, color.b, color.a),
                 };
             }
-
-            if (_particleCount > 0)
-            {
-                _particleBuffer.SetData(_fluidParticleDatas, 0, 0, _particleCount);
-            }
-        }
-
-        #endregion
-        
-        #region methods
-        public void FillParticleDataList(List<FluidParticleData> fluidParticleDataList)
-        {
         }
         #endregion
     }
