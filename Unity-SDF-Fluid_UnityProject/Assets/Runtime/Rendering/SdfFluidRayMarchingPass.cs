@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 namespace Windsmoon.SdfFluid.Rendering
@@ -9,6 +10,9 @@ namespace Windsmoon.SdfFluid.Rendering
     {
         #region fields
         private const string RayMarchingPassName = "SDF Fluid Raymarching Pass";
+        private const string CompositePassName = "SDF Fluid Composite Pass";
+        private const string HalfResolutionColorTextureName = "SDF Fluid Half Resolution Color";
+        
         private static readonly int ParticleBufferId = Shader.PropertyToID("_ParticleBuffer");
         private static readonly int ParticleCountId = Shader.PropertyToID("_ParticleCount");
         private static readonly int SmoothWidthId = Shader.PropertyToID("_SmoothWidth");
@@ -90,29 +94,48 @@ namespace Windsmoon.SdfFluid.Rendering
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            using var builder = renderGraph.AddRasterRenderPass<PassData>(RayMarchingPassName, out var passData);
+
+            TextureDesc halfResolutionColorDescriptor = renderGraph.GetTextureDesc(resourceData.activeColorTexture);
+            // Scale relative to the camera target so RenderGraph keeps the texture at
+            // half size when the camera target or dynamic resolution changes.
+            halfResolutionColorDescriptor.sizeMode = TextureSizeMode.Scale;
+            halfResolutionColorDescriptor.scale = Vector2.one * 0.5f;
+            halfResolutionColorDescriptor.name = HalfResolutionColorTextureName;
+            halfResolutionColorDescriptor.msaaSamples = MSAASamples.None;
+            halfResolutionColorDescriptor.bindTextureMS = false;
+            halfResolutionColorDescriptor.filterMode = FilterMode.Point;
+            halfResolutionColorDescriptor.wrapMode = TextureWrapMode.Clamp;
+            halfResolutionColorDescriptor.clearBuffer = true;
+            halfResolutionColorDescriptor.clearColor = Color.clear;
+            var halfTextureHandle = renderGraph.CreateTexture(halfResolutionColorDescriptor);
+
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(RayMarchingPassName, out var passData))
+            {
+                passData.Material = _material;
+                passData.ParticleBuffer = renderGraph.ImportBuffer(_particleBuffer);
+                passData.ParticleCount = _particleCount;
+                passData.SmoothWidth = _smoothWidth;
+                passData.MaxSteps = _maxSteps;
+                passData.MaxDistance = _maxDistance;
+                passData.StepSafety = _stepSafety;
+                passData.MinStep = _minStep;
+                passData.HitEpsilon = _hitEpsilon;
+                passData.BaseColor = _baseColor;
+                passData.AmbientIntensity = _ambientIntensity;
+                passData.SpecularIntensity = _specularIntensity;
+                passData.SpecularPower = _specularPower;
+                passData.FresnelColor = _fresnelColor;
+                passData.FresnelIntensity = _fresnelIntensity;
+                passData.FresnelPower = _fresnelPower;
             
-            passData.Material = _material;
-            passData.ParticleBuffer = renderGraph.ImportBuffer(_particleBuffer);
-            passData.ParticleCount = _particleCount;
-            passData.SmoothWidth = _smoothWidth;
-            passData.MaxSteps = _maxSteps;
-            passData.MaxDistance = _maxDistance;
-            passData.StepSafety = _stepSafety;
-            passData.MinStep = _minStep;
-            passData.HitEpsilon = _hitEpsilon;
-            passData.BaseColor = _baseColor;
-            passData.AmbientIntensity = _ambientIntensity;
-            passData.SpecularIntensity = _specularIntensity;
-            passData.SpecularPower = _specularPower;
-            passData.FresnelColor = _fresnelColor;
-            passData.FresnelIntensity = _fresnelIntensity;
-            passData.FresnelPower = _fresnelPower;
-            
-            builder.UseBuffer(passData.ParticleBuffer, AccessFlags.Read);
-            builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
-            builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
-            builder.SetRenderFunc<PassData>(RenderFunc);
+                builder.UseBuffer(passData.ParticleBuffer, AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
+                builder.SetRenderAttachment(halfTextureHandle, 0, AccessFlags.Write);
+                builder.SetRenderFunc<PassData>(RenderFunc); 
+            }
+
+            RenderGraphUtils.BlitMaterialParameters compositeParameters = new RenderGraphUtils.BlitMaterialParameters(halfTextureHandle, resourceData.activeColorTexture, _material, 1);
+            renderGraph.AddBlitPass(compositeParameters, CompositePassName);
         }
 
         private static void RenderFunc(PassData passData, RasterGraphContext context)

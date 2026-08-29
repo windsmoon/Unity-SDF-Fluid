@@ -22,20 +22,20 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 
         Pass
         {
-            Name "RayMarching"
-            Blend SrcAlpha OneMinusSrcAlpha
+            Name "Ray Marching"
+            Blend One Zero
             Cull Off
             ZWrite Off
             ZTest Always
 
             HLSLPROGRAM
-            #pragma target 4.5
-            #pragma vertex Vert
-            #pragma fragment Frag
-
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            
+            #pragma target 4.5
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             struct FluidParticleData
             {
@@ -188,6 +188,25 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 
                 return float4(0.0, 0.0, 0.0, 0.0);
             }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Composite"
+
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Off
+            ZWrite Off
+            ZTest Always
+
+            HLSLPROGRAM
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+            
+            #pragma target 4.5
+            #pragma vertex Vert
+            #pragma fragment FragNearest
             ENDHLSL
         }
     }
