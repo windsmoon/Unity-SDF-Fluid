@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
@@ -50,7 +51,7 @@ namespace Windsmoon.SdfFluid.Rendering
         #region constructors
         public SdfFluidRayMarchingPass()
         {
-            ConfigureInput(ScriptableRenderPassInput.Depth);            
+            ConfigureInput(ScriptableRenderPassInput.Depth);
         }
         #endregion
         
@@ -101,6 +102,7 @@ namespace Windsmoon.SdfFluid.Rendering
             halfResolutionColorDescriptor.sizeMode = TextureSizeMode.Scale;
             halfResolutionColorDescriptor.scale = Vector2.one * 0.5f;
             halfResolutionColorDescriptor.name = HalfResolutionColorTextureName;
+            halfResolutionColorDescriptor.colorFormat = GraphicsFormat.R16G16B16A16_SFloat;
             halfResolutionColorDescriptor.msaaSamples = MSAASamples.None;
             halfResolutionColorDescriptor.bindTextureMS = false;
             halfResolutionColorDescriptor.filterMode = FilterMode.Point;
@@ -138,7 +140,7 @@ namespace Windsmoon.SdfFluid.Rendering
             {
                 compositePassData.Material = _material;
                 compositePassData.HalfResolutionColorTexture = halfTextureHandle;
-            
+
                 builder.UseTexture(compositePassData.HalfResolutionColorTexture, AccessFlags.Read);
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowGlobalStateModification(true);
