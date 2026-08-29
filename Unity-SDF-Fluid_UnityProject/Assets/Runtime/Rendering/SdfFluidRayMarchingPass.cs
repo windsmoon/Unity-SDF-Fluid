@@ -12,6 +12,7 @@ namespace Windsmoon.SdfFluid.Rendering
         private const string RayMarchingPassName = "SDF Fluid Raymarching Pass";
         private const string CompositePassName = "SDF Fluid Composite Pass";
         private const string HalfResolutionColorTextureName = "SDF Fluid Half Resolution Color";
+        private const string HalfResolutionSceneDepthTextureName = "SDF Fluid Half Resolution Depth";
         
         private static readonly int ParticleBufferId = Shader.PropertyToID("_ParticleBuffer");
         private static readonly int ParticleCountId = Shader.PropertyToID("_ParticleCount");
@@ -29,7 +30,8 @@ namespace Windsmoon.SdfFluid.Rendering
         private static readonly int FresnelIntensityId = Shader.PropertyToID("_FresnelIntensity");
         private static readonly int FresnelPowerId = Shader.PropertyToID("_FresnelPower");
         private static readonly int HalfResolutionColorTextureId = Shader.PropertyToID("_HalfResolutionColorTexture");
-            
+        private static readonly int HalfResolutionSceneDepthTextureId = Shader.PropertyToID("_HalfResolutionDepthTexture");
+        
         private Material _material;
         private GraphicsBuffer _particleBuffer;
         private int _particleCount;
@@ -109,7 +111,13 @@ namespace Windsmoon.SdfFluid.Rendering
             halfResolutionColorDescriptor.wrapMode = TextureWrapMode.Clamp;
             halfResolutionColorDescriptor.clearBuffer = true;
             halfResolutionColorDescriptor.clearColor = Color.clear;
-            var halfTextureHandle = renderGraph.CreateTexture(halfResolutionColorDescriptor);
+            TextureHandle halfColorTextureHandle = renderGraph.CreateTexture(halfResolutionColorDescriptor);
+
+            TextureDesc halfResolutionDepthDescriptor = halfResolutionColorDescriptor;
+            halfResolutionDepthDescriptor.name = HalfResolutionSceneDepthTextureName;
+            halfResolutionDepthDescriptor.clearBuffer = false;
+            halfResolutionDepthDescriptor.colorFormat = GraphicsFormat.R32_SFloat;
+            TextureHandle halfSceneDepthTextureHandle = renderGraph.CreateTexture(halfResolutionDepthDescriptor);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(RayMarchingPassName, out var passData))
             {
@@ -132,16 +140,20 @@ namespace Windsmoon.SdfFluid.Rendering
             
                 builder.UseBuffer(passData.ParticleBuffer, AccessFlags.Read);
                 builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
-                builder.SetRenderAttachment(halfTextureHandle, 0, AccessFlags.Write);
+                builder.SetRenderAttachment(halfColorTextureHandle, 0, AccessFlags.Write);
+                builder.SetRenderAttachment(halfSceneDepthTextureHandle, 1, AccessFlags.Write);
                 builder.SetRenderFunc<PassData>(RenderFunc); 
             }
             
             using (var builder = renderGraph.AddRasterRenderPass<CompositePassData>(CompositePassName, out var compositePassData))
             {
                 compositePassData.Material = _material;
-                compositePassData.HalfResolutionColorTexture = halfTextureHandle;
+                compositePassData.HalfResolutionColorTexture = halfColorTextureHandle;
+                compositePassData.HalfSceneDepthTextureHandle = halfSceneDepthTextureHandle;
 
-                builder.UseTexture(compositePassData.HalfResolutionColorTexture, AccessFlags.Read);
+                builder.UseTexture(halfColorTextureHandle, AccessFlags.Read);
+                builder.UseTexture(halfSceneDepthTextureHandle, AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderFunc<CompositePassData>(CompositeRenderFunc); 
@@ -203,6 +215,7 @@ namespace Windsmoon.SdfFluid.Rendering
             #region fields
             public Material Material;
             public TextureHandle HalfResolutionColorTexture;
+            public TextureHandle HalfSceneDepthTextureHandle;
             #endregion
         }
         #endregion

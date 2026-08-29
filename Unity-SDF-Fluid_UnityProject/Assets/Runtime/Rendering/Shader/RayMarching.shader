@@ -65,6 +65,12 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 float4 posCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
             };
+            
+            struct Output
+            {
+                float4 fluidColor : SV_TARGET0;
+                float4 sceneDepth : SV_TARGET1;
+            };
 
             float SphereSDF(float3 positionWS, float3 sphereCenterWS, float sphereRadius)
             {
@@ -156,10 +162,13 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 output.uv = GetFullScreenTriangleTexCoord(vertexId);
                 return output;
             }
-
-            float4 Frag(Varyings input) : SV_Target
+            
+            
+            Output Frag(Varyings input) : SV_Target
             {
                 float rawSceneDepth = SampleSceneDepth(input.uv);
+                float sceneDepth = LinearEyeDepth(rawSceneDepth, _ZBufferParams);
+                
 #if UNITY_REVERSED_Z
                 float sceneDeviceDepth = rawSceneDepth;
 #else
@@ -177,16 +186,20 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 float sceneDepthT = dot(scenePositionWS - rayOriginWS, rayDirectionWS);
                 float maxRayMarchDistance = min(_MaxDistance, sceneDepthT);
                 
+                Output output;
+                output.sceneDepth = sceneDepth;
+
                 float hitDistance;
                 if (RayMarchSphere(rayOriginWS, rayDirectionWS, maxRayMarchDistance, hitDistance))
                 {
                     float3 hitPositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float3 surfaceNormalWS = EstimateFluidNormal(hitPositionWS);
                     float3 surfaceColor = ShadeFluid(hitPositionWS, surfaceNormalWS);
-                    return float4(surfaceColor, _BaseColor.a);
+                    output.fluidColor = float4(surfaceColor, _BaseColor.a);
                 }
-
-                return float4(0.0, 0.0, 0.0, 0.0);
+                
+                output.fluidColor = float4(0.0, 0.0, 0.0, 0.0);
+                return output;
             }
             ENDHLSL
         }
@@ -206,8 +219,10 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             #pragma fragment FragComposite
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             TEXTURE2D(_HalfResolutionColorTexture);
+            TEXTURE2D(_HalfResolutionSceneDepthTexture);
 
             struct Attributes
             {
@@ -227,10 +242,47 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
                 return output;
             }
+            
+            half4 SampleDepthAwareFluid(float2 uv)
+            {
+                float rawDepth = SampleSceneDepth(uv);
+                float fullSceneDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+                
+                uint halfWidth;
+                uint halfHeight;
+                _HalfResolutionSceneDepthTexture.GetDimensions(halfWidth, halfHeight);
+                
+                float2 texelPosition = uv * float2(halfWidth, halfHeight) - 0.5;
+                int2 baseCoord = int2(floor(texelPosition));
+                int maxCoord = int2(halfWidth, halfHeight) - 1;
+                
+                float minDepthDiff = 1e20;
+                int2 selectedCoord = int2(0, 0);
+                
+                [unroll]
+                for (int y = 0; y < 2; y++)
+                {
+                    [unroll]
+                    for (int x = 0; x < 2; x++)
+                    {
+                        int2 coord = clamp(baseCoord + int2(x, y), int2(0, 0), maxCoord);
+                        float candidateDepth = LOAD_TEXTURE2D(_HalfResolutionSceneDepthTexture, coord).r;
+                        float depthDiff = abs(candidateDepth - fullSceneDepth);
+                        
+                        if (depthDiff < minDepthDiff)
+                        {
+                            selectedCoord = coord;
+                            minDepthDiff = depthDiff;
+                        }
+                    }
+                }
+                
+                return LOAD_TEXTURE2D(_HalfResolutionColorTexture, selectedCoord);
+            }
 
             half4 FragComposite(Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURE2D(_HalfResolutionColorTexture, sampler_PointClamp, input.texcoord);
+                return SampleDepthAwareFluid(input.texcoord);
             }
             ENDHLSL
         }
