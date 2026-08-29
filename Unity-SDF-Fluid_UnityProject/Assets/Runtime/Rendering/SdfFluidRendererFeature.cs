@@ -16,6 +16,9 @@ namespace Windsmoon.SdfFluid.Rendering
         private RenderPassEvent _renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
         [SerializeField]
         private bool _isParticleDebugMode = false;
+        [SerializeField]
+        [Range(0.001f, 2.0f)]
+        private float _smoothWidth = 0.2f;
 
         private Material _particleDebugMaterial;
         private Material _rayMarchingMaterial;
@@ -92,7 +95,7 @@ namespace Windsmoon.SdfFluid.Rendering
                 return;
             }
             
-            _sdfFluidRayMarchingPass.Setup(_rayMarchingMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount);
+            _sdfFluidRayMarchingPass.Setup(_rayMarchingMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount, _smoothWidth);
             renderer.EnqueuePass(_sdfFluidRayMarchingPass);
         }
         #endregion

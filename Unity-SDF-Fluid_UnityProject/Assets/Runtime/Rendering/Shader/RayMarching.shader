@@ -1,5 +1,10 @@
 Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 {
+    Properties
+    {
+        _SmoothWidth("Smooth Width", Range(0.001, 2.0)) = 0.2
+    }
+
     SubShader
     {
         Tags
@@ -32,6 +37,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             
             StructuredBuffer<FluidParticleData> _ParticleBuffer;
             int _ParticleCount;
+            float _SmoothWidth;
             
             struct Varyings
             {
@@ -43,6 +49,13 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             {
                 return length(positionWS - sphereCenterWS) - sphereRadius;
             }
+
+            float SmoothMin(float distanceA, float distanceB, float smoothWidth)
+            {
+                // Only blend where the two distance fields are within smoothWidth.
+                float blend = saturate(0.5 + 0.5 * (distanceB - distanceA) / smoothWidth);
+                return lerp(distanceB, distanceA, blend) - smoothWidth * blend * (1.0 - blend);
+            }
             
             float EvaluateFluidSDF(float3 positionWS)
             {
@@ -52,7 +65,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 {
                     FluidParticleData particleData = _ParticleBuffer[i];
                     float particleDistance = SphereSDF(positionWS, particleData.position, particleData.radius);
-                    distanceToFluid = min(distanceToFluid, particleDistance);
+                    distanceToFluid = SmoothMin(distanceToFluid, particleDistance, _SmoothWidth);
                 }
                 
                 return distanceToFluid;
