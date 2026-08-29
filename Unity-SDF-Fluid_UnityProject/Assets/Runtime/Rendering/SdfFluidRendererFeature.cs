@@ -14,7 +14,7 @@ namespace Windsmoon.SdfFluid.Rendering
         private RenderPassEvent _renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
 
         private Material _particleDebugMaterial;
-        private ParticleDebugPass _particleDebugPass;
+        private SdfFluidParticleDebugPass _sdfFluidParticleDebugPass;
         #endregion
 
         #region methods
@@ -25,7 +25,7 @@ namespace Windsmoon.SdfFluid.Rendering
                 ? null
                 : CoreUtils.CreateEngineMaterial(_particleDebugShader);
 
-            _particleDebugPass = new ParticleDebugPass
+            _sdfFluidParticleDebugPass = new SdfFluidParticleDebugPass
             {
                 renderPassEvent = _renderPassEvent,
             };
@@ -44,15 +44,15 @@ namespace Windsmoon.SdfFluid.Rendering
                 return;
             }
 
-            _particleDebugPass.Setup(_particleDebugMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount);
-            renderer.EnqueuePass(_particleDebugPass);
+            _sdfFluidParticleDebugPass.Setup(_particleDebugMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount);
+            renderer.EnqueuePass(_sdfFluidParticleDebugPass);
         }
 
         protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(_particleDebugMaterial);
             _particleDebugMaterial = null;
-            _particleDebugPass = null;
+            _sdfFluidParticleDebugPass = null;
         }
         #endregion
     }

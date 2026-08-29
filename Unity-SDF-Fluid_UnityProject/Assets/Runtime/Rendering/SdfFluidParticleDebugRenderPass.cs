@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace Windsmoon.SdfFluid.Rendering
 {
-        internal class ParticleDebugPass : ScriptableRenderPass
+        internal class SdfFluidParticleDebugPass : ScriptableRenderPass
         {
             #region fields
             private const string ParticleDebugPassName = "SDF Fluid Particle Buffer Debug";
