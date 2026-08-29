@@ -201,12 +201,20 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             ZTest Always
 
             HLSLPROGRAM
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-            
             #pragma target 4.5
             #pragma vertex Vert
-            #pragma fragment FragNearest
+            #pragma fragment FragComposite
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+
+            TEXTURE2D(_HalfResolutionColorTexture);
+
+            half4 FragComposite(Varyings input) : SV_Target
+            {
+                float2 uv = input.texcoord;
+                return SAMPLE_TEXTURE2D(_HalfResolutionColorTexture, sampler_PointClamp, uv);
+            }
             ENDHLSL
         }
     }

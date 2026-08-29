@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 namespace Windsmoon.SdfFluid.Rendering
@@ -28,6 +27,7 @@ namespace Windsmoon.SdfFluid.Rendering
         private static readonly int FresnelColorId = Shader.PropertyToID("_FresnelColor");
         private static readonly int FresnelIntensityId = Shader.PropertyToID("_FresnelIntensity");
         private static readonly int FresnelPowerId = Shader.PropertyToID("_FresnelPower");
+        private static readonly int HalfResolutionColorTextureId = Shader.PropertyToID("_HalfResolutionColorTexture");
             
         private Material _material;
         private GraphicsBuffer _particleBuffer;
@@ -133,9 +133,17 @@ namespace Windsmoon.SdfFluid.Rendering
                 builder.SetRenderAttachment(halfTextureHandle, 0, AccessFlags.Write);
                 builder.SetRenderFunc<PassData>(RenderFunc); 
             }
-
-            RenderGraphUtils.BlitMaterialParameters compositeParameters = new RenderGraphUtils.BlitMaterialParameters(halfTextureHandle, resourceData.activeColorTexture, _material, 1);
-            renderGraph.AddBlitPass(compositeParameters, CompositePassName);
+            
+            using (var builder = renderGraph.AddRasterRenderPass<CompositePassData>(CompositePassName, out var compositePassData))
+            {
+                compositePassData.Material = _material;
+                compositePassData.HalfResolutionColorTexture = halfTextureHandle;
+            
+                builder.UseTexture(compositePassData.HalfResolutionColorTexture, AccessFlags.Read);
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
+                builder.AllowGlobalStateModification(true);
+                builder.SetRenderFunc<CompositePassData>(CompositeRenderFunc); 
+            }
         }
 
         private static void RenderFunc(PassData passData, RasterGraphContext context)
@@ -156,6 +164,12 @@ namespace Windsmoon.SdfFluid.Rendering
             passData.Material.SetFloat(FresnelIntensityId, passData.FresnelIntensity);
             passData.Material.SetFloat(FresnelPowerId, passData.FresnelPower);
             context.cmd.DrawProcedural(Matrix4x4.identity, passData.Material, 0, MeshTopology.Triangles, 3, 1);
+        }
+
+        private static void CompositeRenderFunc(CompositePassData compositePassData, RasterGraphContext context)
+        {
+            context.cmd.SetGlobalTexture(HalfResolutionColorTextureId, compositePassData.HalfResolutionColorTexture);
+            context.cmd.DrawProcedural(Matrix4x4.identity, compositePassData.Material, 1, MeshTopology.Triangles, 3, 1);
         }
         #endregion
         
@@ -179,6 +193,14 @@ namespace Windsmoon.SdfFluid.Rendering
             public Color FresnelColor;
             public float FresnelIntensity;
             public float FresnelPower;
+            #endregion
+        }
+        
+        private class CompositePassData
+        {
+            #region fields
+            public Material Material;
+            public TextureHandle HalfResolutionColorTexture;
             #endregion
         }
         #endregion
