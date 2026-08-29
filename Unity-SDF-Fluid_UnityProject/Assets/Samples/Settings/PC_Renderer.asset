@@ -73,12 +73,12 @@ MonoBehaviour:
   _rayMarchingShader: {fileID: 4800000, guid: b41d85a3c6b745ce96ab5804d16bfd17, type: 3}
   _renderPassEvent: 450
   _isParticleDebugMode: 0
-  _smoothWidth: 0.211
+  _smoothWidth: 0.14
   _maxSteps: 40
   _maxDistance: 100
-  _stepSafety: 0.7
-  _minStep: 0.001
-  _hitEpsilon: 0.014
+  _stepSafety: 0.897
+  _minStep: 0.0039
+  _hitEpsilon: 0.0236
   _baseColor: {r: 0.4292453, g: 0.81609005, b: 1, a: 1}
   _ambientIntensity: 0.127
   _specularIntensity: 1

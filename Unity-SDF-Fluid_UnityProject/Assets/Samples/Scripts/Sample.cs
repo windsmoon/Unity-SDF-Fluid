@@ -7,8 +7,8 @@ using Windsmoon.SdfFluid.ParticleProvider;
 public class Sample : MonoBehaviour
 {
     #region fields
-    [SerializeField, Range(1, 10240)] 
-    private int _maxParticleCount = 64;
+    [SerializeField, Min(1)]
+    private int _maxParticleCount = 2048;
     [SerializeField]
     private ParticleSystemParticleProvider _particleProvider;
     [SerializeField]

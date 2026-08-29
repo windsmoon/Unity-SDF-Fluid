@@ -4,22 +4,20 @@ using UnityEngine;
 public class ParticleRainEmitter : MonoBehaviour
 {
     #region fields
-    private const int MaxParticleCount = 512;
-
-    [SerializeField, Range(32, 256)]
-    private int _particlesPerBurst = 128;
+    [SerializeField, Range(32, 1024)]
+    private int _particlesPerBurst = 512;
     [SerializeField, Min(0.25f)]
-    private float _burstInterval = 1.65f;
+    private float _burstInterval = 1.45f;
     [SerializeField, Min(0.0f)]
     private float _initialDelay = 0.35f;
     [SerializeField]
-    private Vector2 _rainArea = new Vector2(5.8f, 2.6f);
+    private Vector2 _rainArea = new Vector2(4.4f, 1.5f);
     [SerializeField, Range(0.0f, 0.25f)]
-    private float _spawnJitter = 0.08f;
+    private float _spawnJitter = 0.035f;
     [SerializeField]
-    private Vector2 _fallSpeed = new Vector2(0.7f, 1.1f);
+    private Vector2 _fallSpeed = new Vector2(0.9f, 1.25f);
     [SerializeField, Range(0.0f, 0.5f)]
-    private float _lateralSpeed = 0.18f;
+    private float _lateralSpeed = 0.08f;
     [SerializeField]
     private int _randomSeed = 6006;
 
@@ -34,7 +32,6 @@ public class ParticleRainEmitter : MonoBehaviour
         _particleSystem = GetComponent<ParticleSystem>();
 
         ParticleSystem.MainModule main = _particleSystem.main;
-        main.maxParticles = MaxParticleCount;
         main.simulationSpace = ParticleSystemSimulationSpace.World;
 
         ParticleSystem.EmissionModule emission = _particleSystem.emission;
