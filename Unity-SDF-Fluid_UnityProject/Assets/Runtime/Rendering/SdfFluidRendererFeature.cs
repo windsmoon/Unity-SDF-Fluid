@@ -92,7 +92,7 @@ namespace Windsmoon.SdfFluid.Rendering
                 return;
             }
             
-            _sdfFluidRayMarchingPass.Setup(_rayMarchingMaterial);
+            _sdfFluidRayMarchingPass.Setup(_rayMarchingMaterial, activeSystem.ParticleBuffer, activeSystem.ParticleCount);
             renderer.EnqueuePass(_sdfFluidRayMarchingPass);
         }
         #endregion

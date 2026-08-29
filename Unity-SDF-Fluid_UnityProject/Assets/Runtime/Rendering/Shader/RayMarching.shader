@@ -23,6 +23,16 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+            struct FluidParticleData
+            {
+                float3 position;
+                float radius;
+                float4 color;
+            };
+            
+            StructuredBuffer<FluidParticleData> _ParticleBuffer;
+            int _ParticleCount;
+            
             struct Varyings
             {
                 float4 posCS : SV_POSITION;
@@ -33,11 +43,23 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
             {
                 return length(positionWS - sphereCenterWS) - sphereRadius;
             }
+            
+            float EvaluateFluidSDF(float3 positionWS)
+            {
+                float distanceToFluid = 1e20;
+                
+                for (int i = 0; i < _ParticleCount; ++i)
+                {
+                    FluidParticleData particleData = _ParticleBuffer[i];
+                    float particleDistance = SphereSDF(positionWS, particleData.position, particleData.radius);
+                    distanceToFluid = min(distanceToFluid, particleDistance);
+                }
+                
+                return distanceToFluid;
+            }
 
             bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)
             {
-                const float3 sphereCenterWS = float3(0.0, 1.0, 0.0);
-                const float sphereRadius = 0.5;
                 const float maxDistance = 100.0;
                 const float hitEpsilon = 0.005;
                 const float stepSafety = 0.7;
@@ -49,7 +71,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 for (uint step = 0; step < 40; ++step)
                 {
                     float3 samplePositionWS = rayOriginWS + rayDirectionWS * hitDistance;
-                    float distanceToSurface = SphereSDF(samplePositionWS, sphereCenterWS, sphereRadius);
+                    float distanceToSurface = EvaluateFluidSDF(samplePositionWS);
 
                     if (distanceToSurface < hitEpsilon)
                     {
