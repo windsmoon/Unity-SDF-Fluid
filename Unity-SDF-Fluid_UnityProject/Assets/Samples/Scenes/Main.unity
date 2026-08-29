@@ -804,7 +804,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 60
+    maxNumParticles: 512
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -5118,7 +5118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7877c303d4f96e4d96d68830c317b63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sample
-  _maxParticleCount: 64
+  _maxParticleCount: 512
   _particleProvider: {fileID: 161763595}
   _material: {fileID: 2100000, guid: 6e391adf3c2cfeb4ba2455ea4fd00bdd, type: 2}
 --- !u!1 &410087039

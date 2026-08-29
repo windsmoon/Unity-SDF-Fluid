@@ -75,6 +75,21 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 return distanceToFluid;
             }
 
+            float3 EstimateFluidNormal(float3 positionWS)
+            {
+                // Sample the fused field on both sides of the hit point so the
+                // gradient remains stable across Smooth Min particle seams.
+                float normalEpsilon = max(_HitEpsilon, 0.0001);
+                float3 offsetX = float3(normalEpsilon, 0.0, 0.0);
+                float3 offsetY = float3(0.0, normalEpsilon, 0.0);
+                float3 offsetZ = float3(0.0, 0.0, normalEpsilon);
+                float3 gradient = float3(
+                    EvaluateFluidSDF(positionWS + offsetX) - EvaluateFluidSDF(positionWS - offsetX),
+                    EvaluateFluidSDF(positionWS + offsetY) - EvaluateFluidSDF(positionWS - offsetY),
+                    EvaluateFluidSDF(positionWS + offsetZ) - EvaluateFluidSDF(positionWS - offsetZ));
+                return normalize(gradient);
+            }
+
             bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, out float hitDistance)
             {
                 const float maxDistance = 100.0;
@@ -121,7 +136,9 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 float hitDistance;
                 if (RayMarchSphere(rayOriginWS, rayDirectionWS, hitDistance))
                 {
-                    return float4(1.0, 0.0, 0.0, 1.0);
+                    float3 hitPositionWS = rayOriginWS + rayDirectionWS * hitDistance;
+                    float3 surfaceNormalWS = EstimateFluidNormal(hitPositionWS);
+                    return float4(surfaceNormalWS * 0.5 + 0.5, 1.0);
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);
