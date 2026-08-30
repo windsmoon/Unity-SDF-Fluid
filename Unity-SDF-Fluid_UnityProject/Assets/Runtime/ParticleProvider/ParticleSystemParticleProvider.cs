@@ -8,6 +8,9 @@ namespace Windsmoon.SdfFluid.ParticleProvider
     public class ParticleSystemParticleProvider : MonoBehaviour, IParticleProvider
     {
         #region fields
+        [SerializeField, Range(0.0f, 2.0f)]
+        private float _downwardOffsetRatio = 1f;
+
         private ParticleSystem _particleSystem;
         private ParticleSystem.Particle[] _particleCache;
         private int _particleCount;
@@ -41,10 +44,13 @@ namespace Windsmoon.SdfFluid.ParticleProvider
             {
                 var particle = _particleCache[i];
                 Color color = particle.GetCurrentColor(_particleSystem);
+                float radius = particle.GetCurrentSize(_particleSystem) * 0.5f;
                 fluidParticleDataList.Add(new FluidParticleData()
                 {
-                    Position = particle.position,
-                    Radius = particle.GetCurrentSize(_particleSystem) * 0.5f,
+                    // Lower only the reconstructed SDF center. The simulated particle keeps its
+                    // original position so collision and motion do not sink into the scene floor.
+                    Position = particle.position + Vector3.down * (radius * _downwardOffsetRatio),
+                    Radius = radius,
                     Color = new Vector4(color.r, color.g, color.b, color.a),
                 });
             }
