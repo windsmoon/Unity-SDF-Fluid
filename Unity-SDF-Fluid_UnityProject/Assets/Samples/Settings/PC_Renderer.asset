@@ -79,11 +79,11 @@ MonoBehaviour:
   _stepSafety: 0.897
   _minStep: 0.0039
   _hitEpsilon: 0.0236
-  _baseColor: {r: 0.16037738, g: 0.16037738, b: 0.16037738, a: 1}
+  _baseColor: {r: 0.0754717, g: 0.06799573, b: 0.06799573, a: 1}
   _ambientIntensity: 0.127
   _specularIntensity: 1
   _specularPower: 121.1
-  _fresnelColor: {r: 0.06852971, g: 0.14768702, b: 0.18867922, a: 1}
+  _fresnelColor: {r: 0, g: 0, b: 0, a: 1}
   _fresnelIntensity: 1.06
   _fresnelPower: 5.97
 --- !u!114 &7833122117494664109

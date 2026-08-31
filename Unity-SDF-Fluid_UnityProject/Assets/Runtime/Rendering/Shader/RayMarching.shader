@@ -98,6 +98,25 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 return distanceToFluid;
             }
 
+            float4 EvaluateFluidColor(float3 positionWS)
+            {
+                float distanceToFluid = 1e20;
+                float4 fluidColor = 1.0;
+
+                for (int i = 0; i < _ParticleCount; ++i)
+                {
+                    FluidParticleData particleData = _ParticleBuffer[i];
+                    float particleDistance = SphereSDF(positionWS, particleData.position, particleData.radius);
+                    // Reuse the Smooth Min blend factor so color follows the same
+                    // transition as the fused particle surface.
+                    float blend = saturate(0.5 + 0.5 * (particleDistance - distanceToFluid) / _SmoothWidth);
+                    fluidColor = lerp(particleData.color, fluidColor, blend);
+                    distanceToFluid = SmoothMin(distanceToFluid, particleDistance, _SmoothWidth);
+                }
+
+                return fluidColor;
+            }
+
             float3 EstimateFluidNormal(float3 positionWS)
             {
                 // Sample the fused field on both sides of the hit point so the
@@ -113,7 +132,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 return normalize(gradient);
             }
 
-            float3 ShadeFluid(float3 hitPositionWS, float3 surfaceNormalWS)
+            float3 ShadeFluid(float3 hitPositionWS, float3 surfaceNormalWS, float3 baseColor)
             {
                 Light mainLight = GetMainLight();
                 float diffuseIntensity = saturate(dot(surfaceNormalWS, mainLight.direction));
@@ -127,7 +146,7 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 float3 specularLighting = mainLight.color * specularIntensity * _SpecularIntensity;
                 float fresnelIntensity = pow(1.0 - saturate(dot(surfaceNormalWS, viewDirectionWS)), _FresnelPower) * _FresnelIntensity;
                 float3 fresnelLighting = _FresnelColor.rgb * fresnelIntensity;
-                return _BaseColor.rgb * (_AmbientIntensity + directLighting) + specularLighting + fresnelLighting;
+                return baseColor * (_AmbientIntensity + directLighting) + specularLighting + fresnelLighting;
             }
 
             bool RayMarchSphere(float3 rayOriginWS, float3 rayDirectionWS, float maxDistance, out float hitDistance)
@@ -199,8 +218,10 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                 {
                     float3 hitPositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float3 surfaceNormalWS = EstimateFluidNormal(hitPositionWS);
-                    float3 surfaceColor = ShadeFluid(hitPositionWS, surfaceNormalWS);
-                    output.fluidColor = float4(surfaceColor, _BaseColor.a);
+                    float4 particleColor = EvaluateFluidColor(hitPositionWS);
+                    float4 fluidBaseColor = particleColor * _BaseColor;
+                    float3 surfaceColor = ShadeFluid(hitPositionWS, surfaceNormalWS, fluidBaseColor.rgb);
+                    output.fluidColor = float4(surfaceColor, fluidBaseColor.a);
                 }
                 
                 return output;
