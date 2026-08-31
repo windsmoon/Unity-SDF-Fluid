@@ -5044,7 +5044,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dc0d2b1d5be48348ddb056ef061ee32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Windsmoon.SdfFluid.ParticleProvider.ParticleSystemParticleProvider
-  _downwardOffsetRatio: 0.35
+  _downwardOffsetRatio: 1.133
 --- !u!114 &161763596
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -66,24 +66,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c00bf0a32d146cba1f581982f2c42c7, type: 3}
-  m_Name: SDF Fluid Particle Buffer Debug
+  m_Name: SDF Fluid Render Feature
   m_EditorClassIdentifier: Assembly-CSharp::Windsmoon.SdfFluid.Rendering.SdfFluidRendererFeature
   m_Active: 1
   _particleDebugShader: {fileID: 4800000, guid: a44109e9e88f4b9e8a7ceaee00fbb340, type: 3}
   _rayMarchingShader: {fileID: 4800000, guid: b41d85a3c6b745ce96ab5804d16bfd17, type: 3}
   _renderPassEvent: 450
   _isParticleDebugMode: 0
-  _smoothWidth: 0.14
+  _smoothWidth: 0.204
   _maxSteps: 40
   _maxDistance: 100
   _stepSafety: 0.897
   _minStep: 0.0039
   _hitEpsilon: 0.0236
-  _baseColor: {r: 0.0754717, g: 0.06799573, b: 0.06799573, a: 1}
+  _baseColor: {r: 1, g: 1, b: 1, a: 1}
   _ambientIntensity: 0.127
   _specularIntensity: 1
   _specularPower: 121.1
-  _fresnelColor: {r: 0, g: 0, b: 0, a: 1}
+  _fresnelColor: {r: 0.9716981, g: 0.9716981, b: 0.9716981, a: 1}
   _fresnelIntensity: 1.06
   _fresnelPower: 5.97
 --- !u!114 &7833122117494664109
