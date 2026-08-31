@@ -140,12 +140,16 @@ Shader "Hidden/Windsmoon/SDF Fluid/Ray Marching"
                     float3 samplePositionWS = rayOriginWS + rayDirectionWS * hitDistance;
                     float distanceToSurface = EvaluateFluidSDF(samplePositionWS);
 
-                    if (distanceToSurface < _HitEpsilon)
+                    // A nearby fused particle can contain the camera. Treating every negative
+                    // distance as a hit shades the ray origin instead of a real surface and
+                    // creates a screen-space hole. March by the absolute distance so rays that
+                    // start inside the fluid converge on the exit surface.
+                    if (abs(distanceToSurface) < _HitEpsilon)
                     {
                         return true;
                     }
 
-                    hitDistance += max(distanceToSurface * _StepSafety, _MinStep);
+                    hitDistance += max(abs(distanceToSurface) * _StepSafety, _MinStep);
                     if (hitDistance >= maxDistance)
                     {
                         break;
